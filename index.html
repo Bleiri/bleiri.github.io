@@ -176,6 +176,17 @@
     .modal .acciones a { text-decoration: none; }
     .cerrar { position: absolute; top: 10px; right: 10px; border: 0; background: none; font-size: 1.5rem; cursor: pointer; line-height: 1; padding: 6px; }
 
+    .toast {
+      position: fixed; left: 50%; bottom: 20px; z-index: 20;
+      transform: translate(-50%, 160%);
+      width: max-content; max-width: calc(100% - 32px);
+      background: var(--ink); color: var(--paper);
+      padding: 14px 18px; border-radius: 6px; font-size: .95rem; text-align: center;
+      box-shadow: 0 12px 30px rgba(0,0,0,.25);
+      transition: transform .3s;
+    }
+    .toast.visible { transform: translate(-50%, 0); }
+
     @media (prefers-reduced-motion: reduce) {
       * { transition: none !important; scroll-behavior: auto !important; }
     }
@@ -203,11 +214,13 @@
   <section class="como">
     <h3>Cómo pedir</h3>
     <div class="paso"><b>01</b><p>Elige tu camiseta y tu talla y pulsa <strong>Pedir por Instagram</strong>.</p></div>
-    <div class="paso"><b>02</b><p>Copiamos tu mensaje con el producto y la talla, y se abre nuestro chat de Instagram.</p></div>
-    <div class="paso"><b>03</b><p>Pega el mensaje y envíalo. Te respondemos para confirmar el pago y el envío.</p></div>
+    <div class="paso"><b>02</b><p>Se abre nuestro chat con tu pedido ya copiado: <strong>pega y envía</strong>.</p></div>
+    <div class="paso"><b>03</b><p>Te respondemos para confirmar el pago y el envío.</p></div>
   </section>
 
   <footer id="pie"></footer>
+
+  <div class="toast" id="toast" role="status">✔ Pedido copiado. En el chat de Instagram, <strong>pega y envía</strong>.</div>
 
   <dialog id="modal">
     <button class="cerrar" aria-label="Cerrar" onclick="modal.close()">×</button>
@@ -394,12 +407,12 @@
       if (agotado) {
         boton.classList.add("secundario");
         boton.innerHTML = icono.ig + " Avísame cuando vuelva";
-        boton.onclick = () => abrirPedido(p, null, "reposicion");
+        boton.onclick = () => pedirDirecto(p, null, "reposicion");
       } else {
         boton.innerHTML = icono.ig + " Pedir por Instagram";
         boton.onclick = () => {
           if (!tallaElegida) { aviso.textContent = "Elige una talla primero 👆"; return; }
-          abrirPedido(p, tallaElegida, "pedido");
+          pedirDirecto(p, tallaElegida, "pedido");
         };
       }
 
@@ -439,14 +452,50 @@
       }
     }
 
-    // Ventana de pedido: Instagram no permite rellenar el DM desde un enlace,
-    // así que copiamos el mensaje y guiamos al cliente para que lo pegue.
+    // Copia síncrona: funciona dentro del mismo toque, antes de saltar a Instagram
+    function copiarYa(texto) {
+      const t = document.createElement("textarea");
+      t.value = texto; t.readOnly = true;
+      t.style.position = "fixed"; t.style.top = "0"; t.style.opacity = "0";
+      document.body.appendChild(t);
+      t.select(); t.setSelectionRange(0, texto.length);
+      let ok = false; try { ok = document.execCommand("copy"); } catch {}
+      t.remove();
+      return ok;
+    }
+
+    const crearMensaje = (p, talla, tipo) => rellenar(MENSAJES[tipo], {
+      nombre: p.nombre, ref: p.id, talla: talla || "", precio: precioTxt(p.precio), enlace: urlProducto(p),
+    }).trim();
+
+    // Un solo toque: copia el mensaje y abre el chat de Instagram.
+    // Instagram no deja que una web escriba en su chat, así que el cliente solo tiene que pegar y enviar.
+    function pedirDirecto(p, talla, tipo) {
+      const mensaje = crearMensaje(p, talla, tipo);
+      let copiado = copiarYa(mensaje);
+      if (!copiado && !navigator.clipboard) return abrirPedido(p, talla, tipo); // sin portapapeles: ventana guiada
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(mensaje).then(() => { copiado = true; }, () => {});
+      }
+      avisarPegar();
+      window.open("https://ig.me/m/" + TIENDA.instagram, "_blank");
+      // Si al volver a la web resulta que no se pudo copiar, mostramos la ventana con el mensaje
+      setTimeout(() => { if (!copiado) abrirPedido(p, talla, tipo); }, 1500);
+    }
+
+    let temporizadorToast;
+    function avisarPegar() {
+      const t = document.getElementById("toast");
+      t.classList.add("visible");
+      clearTimeout(temporizadorToast);
+      temporizadorToast = setTimeout(() => t.classList.remove("visible"), 9000);
+    }
+
+    // Ventana de respaldo, solo si el navegador no permite copiar automáticamente
     const modal = document.getElementById("modal");
     let mensajeActual = "";
     async function abrirPedido(p, talla, tipo) {
-      mensajeActual = rellenar(MENSAJES[tipo], {
-        nombre: p.nombre, ref: p.id, talla: talla || "", precio: precioTxt(p.precio), enlace: urlProducto(p),
-      }).trim();
+      mensajeActual = crearMensaje(p, talla, tipo);
       document.getElementById("modal-titulo").textContent = tipo === "pedido" ? "Tu pedido está listo" : "Te avisamos";
       document.getElementById("modal-mensaje").textContent = mensajeActual;
       const abrir = document.getElementById("modal-abrir");
