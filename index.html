@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bleiri</title>
+  <meta name="author" content="Bleiri">
+  <meta name="description" content="Bleiri: camisetas de diseño propio. Pedidos por Instagram @bleiri___">
+  <meta property="og:title" content="Bleiri">
+  <meta property="og:description" content="Camisetas de diseño propio. Pide la tuya por Instagram.">
+  <meta property="og:type" content="website">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;800&family=Archivo+Black&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --paper: #f3f1ec;
+      --surface: #e8e5de;
+      --ink: #141414;
+      --ink-soft: #5c5a55;
+      --line: #d6d2c9;
+      --accent: #ff4a1c;
+      --ok: #1f7a4d;
+      --radius: 4px;
+      color-scheme: light;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: "Archivo", system-ui, sans-serif;
+      background: var(--paper);
+      color: var(--ink);
+      line-height: 1.45;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+    button { font: inherit; color: inherit; }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+    /* ---------- Cabecera ---------- */
+    .barra {
+      position: sticky; top: 0; z-index: 5;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px 16px;
+      background: color-mix(in srgb, var(--paper) 88%, transparent);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--line);
+      font-size: .85rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
+    }
+    .barra { gap: 16px; }
+    .barra > * { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .barra a { color: var(--ink); text-decoration: none; display: inline-flex; gap: 6px; align-items: center; flex-shrink: 0; max-width: 60%; }
+    .barra a span { overflow: hidden; text-overflow: ellipsis; }
+    .barra a svg { flex-shrink: 0; }
+    @media (max-width: 480px) { #marca { display: none; } .barra { justify-content: flex-end; } .barra a { max-width: 100%; } }
+    .barra a:hover { color: var(--accent); }
+
+    .hero { max-width: 1200px; margin: 0 auto; padding: 56px 16px 32px; }
+    .hero h1 {
+      font-family: "Archivo Black", sans-serif;
+      font-size: clamp(2.6rem, 9vw, 6.5rem);
+      line-height: .92; letter-spacing: -.03em;
+      margin: 0 0 20px; text-transform: uppercase;
+    }
+    .hero p { max-width: 46ch; margin: 0; font-size: 1.1rem; color: var(--ink-soft); }
+
+    /* ---------- Filtros ---------- */
+    .filtros {
+      max-width: 1200px; margin: 0 auto; padding: 8px 16px 20px;
+      display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+    }
+    .chip {
+      border: 1px solid var(--ink); background: transparent;
+      padding: 7px 14px; border-radius: 999px; cursor: pointer;
+      font-size: .85rem; font-weight: 600;
+    }
+    .chip[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+    .contador { margin-left: auto; font-size: .85rem; color: var(--ink-soft); }
+
+    /* ---------- Catálogo ---------- */
+    main {
+      max-width: 1200px; margin: 0 auto; padding: 0 16px 80px;
+      display: grid; gap: 40px 24px;
+      grid-template-columns: repeat(auto-fill, minmax(min(250px, 100%), 1fr));
+    }
+    .producto { display: flex; flex-direction: column; scroll-margin-top: 80px; }
+    .foto {
+      position: relative; background: var(--surface);
+      border-radius: var(--radius); overflow: hidden;
+      transition: box-shadow .3s;
+    }
+    .producto.destacado .foto { box-shadow: 0 0 0 3px var(--accent); }
+    .foto img {
+      width: 100%; aspect-ratio: 4 / 5; object-fit: cover; display: block;
+      transition: transform .5s ease;
+    }
+    .producto:hover .foto img { transform: scale(1.03); }
+    .etiqueta {
+      position: absolute; top: 10px; left: 10px;
+      background: var(--ink); color: var(--paper);
+      font-size: .72rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase;
+      padding: 5px 8px; border-radius: 2px;
+    }
+    .etiqueta.ultimas { background: var(--accent); }
+    .btn-enlace {
+      position: absolute; top: 8px; right: 8px;
+      width: 36px; height: 36px; border-radius: 50%;
+      border: 0; background: var(--paper); cursor: pointer;
+      display: grid; place-items: center; opacity: .9;
+    }
+    .btn-enlace:hover { opacity: 1; color: var(--accent); }
+    .producto.agotado .foto img { filter: grayscale(1); opacity: .55; }
+
+    .info { padding-top: 14px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
+    .cabecera-info { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
+    .info h2 { font-size: 1.02rem; font-weight: 600; margin: 0; }
+    .precio { font-weight: 800; white-space: nowrap; }
+    .desc { margin: -4px 0 0; color: var(--ink-soft); font-size: .9rem; }
+
+    .tallas { display: flex; gap: 6px; flex-wrap: wrap; border: 0; padding: 0; margin: 0; }
+    .tallas legend { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+    .talla {
+      min-width: 42px; padding: 7px 8px;
+      border: 1px solid var(--line); background: transparent; border-radius: var(--radius);
+      font-size: .82rem; font-weight: 600; cursor: pointer;
+    }
+    .talla:hover:not(:disabled) { border-color: var(--ink); }
+    .talla[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+    .talla:disabled { color: #aaa69d; text-decoration: line-through; cursor: not-allowed; }
+    .aviso-talla { font-size: .8rem; color: var(--accent); min-height: 1.2em; margin: -4px 0 0; font-weight: 600; }
+
+    .btn-pedir {
+      margin-top: auto;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 13px 14px; border: 1px solid var(--ink); border-radius: var(--radius);
+      background: var(--ink); color: var(--paper);
+      font-weight: 600; cursor: pointer; transition: background .2s, color .2s;
+    }
+    .btn-pedir:hover { background: var(--accent); border-color: var(--accent); }
+    .btn-pedir.secundario { background: transparent; color: var(--ink); }
+    .btn-pedir.secundario:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+    /* ---------- Cómo pedir ---------- */
+    .como {
+      border-top: 1px solid var(--line);
+      max-width: 1200px; margin: 0 auto; padding: 48px 16px 64px;
+      display: grid; gap: 24px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+    .como h3 { font-family: "Archivo Black", sans-serif; text-transform: uppercase; font-size: 1.4rem; margin: 0; grid-column: 1 / -1; }
+    .paso b { display: block; font-family: "Archivo Black", sans-serif; font-size: 2rem; color: var(--accent); line-height: 1; margin-bottom: 8px; }
+    .paso p { margin: 0; color: var(--ink-soft); }
+
+    footer { padding: 24px 16px 40px; text-align: center; font-size: .8rem; color: var(--ink-soft); }
+
+    /* ---------- Ventana de pedido ---------- */
+    dialog {
+      width: min(440px, calc(100% - 32px));
+      border: 0; border-radius: 8px; padding: 0;
+      background: var(--paper); color: var(--ink);
+      box-shadow: 0 30px 80px rgba(0,0,0,.35);
+    }
+    dialog::backdrop { background: rgba(20,20,20,.55); }
+    .modal { padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+    .modal h4 { margin: 0; font-family: "Archivo Black", sans-serif; text-transform: uppercase; font-size: 1.3rem; }
+    .copiado { display: inline-flex; gap: 6px; align-items: center; color: var(--ok); font-weight: 600; font-size: .9rem; }
+    .mensaje {
+      white-space: pre-wrap; margin: 0;
+      background: var(--surface); border-left: 3px solid var(--accent);
+      padding: 12px 14px; font-size: .9rem; border-radius: 2px;
+      font-family: inherit;
+    }
+    .modal ol { margin: 0; padding-left: 20px; color: var(--ink-soft); font-size: .92rem; }
+    .modal ol li { margin-bottom: 4px; }
+    .modal .acciones { display: flex; flex-direction: column; gap: 8px; }
+    .modal .acciones a { text-decoration: none; }
+    .cerrar { position: absolute; top: 10px; right: 10px; border: 0; background: none; font-size: 1.5rem; cursor: pointer; line-height: 1; padding: 6px; }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { transition: none !important; scroll-behavior: auto !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="barra">
+    <span id="marca"></span>
+    <a id="enlace-perfil" target="_blank" rel="noopener"></a>
+  </div>
+
+  <section class="hero">
+    <h1 id="nombre-tienda"></h1>
+    <p id="eslogan"></p>
+  </section>
+
+  <div class="filtros" role="group" aria-label="Filtrar productos">
+    <button class="chip" data-filtro="todos" aria-pressed="true">Todo</button>
+    <button class="chip" data-filtro="disponibles" aria-pressed="false">Disponibles</button>
+    <span class="contador" id="contador"></span>
+  </div>
+
+  <main id="catalogo"></main>
+
+  <section class="como">
+    <h3>Cómo pedir</h3>
+    <div class="paso"><b>01</b><p>Elige tu camiseta y tu talla y pulsa <strong>Pedir por Instagram</strong>.</p></div>
+    <div class="paso"><b>02</b><p>Copiamos tu mensaje con el producto y la talla, y se abre nuestro chat de Instagram.</p></div>
+    <div class="paso"><b>03</b><p>Pega el mensaje y envíalo. Te respondemos para confirmar el pago y el envío.</p></div>
+  </section>
+
+  <footer id="pie"></footer>
+
+  <dialog id="modal">
+    <button class="cerrar" aria-label="Cerrar" onclick="modal.close()">×</button>
+    <div class="modal">
+      <h4 id="modal-titulo">Tu pedido</h4>
+      <span class="copiado" id="modal-estado"></span>
+      <pre class="mensaje" id="modal-mensaje"></pre>
+      <ol>
+        <li>Pulsa <strong>Abrir chat de Instagram</strong>.</li>
+        <li>Mantén pulsado en el cuadro de texto y elige <strong>Pegar</strong>.</li>
+        <li>Envía el mensaje. ¡Listo!</li>
+      </ol>
+      <div class="acciones">
+        <a class="btn-pedir" id="modal-abrir" target="_blank" rel="noopener"></a>
+        <button class="btn-pedir secundario" id="modal-copiar">Copiar el mensaje otra vez</button>
+      </div>
+    </div>
+  </dialog>
+
+  <script>
+    // ==========================================================
+    //  CONFIGURACIÓN: edita esta parte para cambiar la tienda
+    // ==========================================================
+
+    const TIENDA = {
+      nombre: "Bleiri",
+      eslogan: "Diseños únicos, tiradas cortas. Elige tu talla y pídela directamente por Instagram.",
+      instagram: "bleiri___", // sin la @
+      moneda: "€",
+      ultimasUnidades: 2, // con este número o menos se muestra "¡Quedan X!"
+    };
+
+    // Plantillas del mensaje que te llegará por DM.
+    // Puedes usar: {nombre} {ref} {talla} {precio} {enlace}
+    const MENSAJES = {
+      pedido:
+        "¡Hola! Quiero pedir esta camiseta 👕\n" +
+        "▪ Producto: {nombre}\n" +
+        "▪ Talla: {talla}\n" +
+        "▪ Precio: {precio}\n" +
+        "▪ Ref: {ref}\n" +
+        "{enlace}",
+      reposicion:
+        "¡Hola! Me interesa la camiseta {nombre} (ref: {ref}), pero está agotada. " +
+        "¿Me avisáis cuando vuelva a haber stock? Mi talla es: ___\n" +
+        "{enlace}",
+    };
+
+    // STOCK: indica cuántas unidades quedan de cada talla.
+    //   0 = agotada (aparece tachada). Si todas son 0, la camiseta sale como "Agotado".
+    //   Para quitar una talla que no fabricas, bórrala de la lista.
+    // "id" debe ser único y sin espacios: se usa en el enlace directo al producto.
+    // Las fotos van en la carpeta "imagenes/".
+    const PRODUCTOS = [
+      {
+        id: "basica-negra",
+        nombre: "Básica Negra",
+        precio: 19.99,
+        imagen: "imagenes/basica-negra.jpg",
+        descripcion: "100% algodón peinado, 180 g.",
+        stock: { S: 4, M: 6, L: 3, XL: 0 },
+        nuevo: false,
+      },
+      {
+        id: "basica-blanca",
+        nombre: "Básica Blanca",
+        precio: 19.99,
+        imagen: "imagenes/basica-blanca.jpg",
+        descripcion: "100% algodón peinado, 180 g.",
+        stock: { S: 2, M: 1, L: 5, XL: 2 },
+        nuevo: false,
+      },
+      {
+        id: "estampada-retro",
+        nombre: "Estampado Retro",
+        precio: 24.99,
+        imagen: "imagenes/estampada-retro.jpg",
+        descripcion: "Serigrafía a mano, tirada de 30 unidades.",
+        stock: { S: 0, M: 2, L: 1, XL: 0 },
+        nuevo: true,
+      },
+      {
+        id: "oversize-gris",
+        nombre: "Oversize Gris",
+        precio: 27.5,
+        imagen: "imagenes/oversize-gris.jpg",
+        descripcion: "Corte amplio, tejido grueso de 240 g.",
+        stock: { S: 0, M: 0, L: 0, XL: 0 },
+        nuevo: false,
+      },
+    ];
+
+    // ==========================================================
+    //  A partir de aquí no hace falta tocar nada
+    // ==========================================================
+
+    const icono = {
+      ig: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg>',
+      link: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>',
+      ok: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>',
+    };
+    const sinFoto = "data:image/svg+xml," + encodeURIComponent(
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 250"><rect width="200" height="250" fill="#e8e5de"/><path d="M70 80l-30 18 12 22 13-6v66h70v-66l13 6 12-22-30-18c-5 10-15 15-30 15s-25-5-30-15z" fill="#d6d2c9"/></svg>'
+    );
+
+    const precioTxt = p => p.toFixed(2).replace(".", ",") + " " + TIENDA.moneda;
+    // El enlace solo tiene sentido cuando la web está publicada (http/https)
+    const urlProducto = p => /^https?:/.test(location.protocol) ? location.href.split("#")[0] + "#" + p.id : "";
+    const totalStock = p => Object.values(p.stock || {}).reduce((a, b) => a + b, 0);
+    const rellenar = (plantilla, datos) => plantilla.replace(/\{(\w+)\}/g, (_, k) => datos[k] ?? "");
+
+    // Cabecera
+    document.title = TIENDA.nombre;
+    document.getElementById("marca").textContent = TIENDA.nombre;
+    document.getElementById("nombre-tienda").textContent = TIENDA.nombre;
+    document.getElementById("eslogan").textContent = TIENDA.eslogan;
+    const perfil = document.getElementById("enlace-perfil");
+    perfil.href = "https://instagram.com/" + TIENDA.instagram;
+    perfil.innerHTML = icono.ig + "<span></span>";
+    perfil.querySelector("span").textContent = "@" + TIENDA.instagram;
+    document.getElementById("pie").textContent = "© " + new Date().getFullYear() + " " + TIENDA.nombre + " · Pedidos por Instagram";
+
+    // Catálogo
+    const catalogo = document.getElementById("catalogo");
+    PRODUCTOS.forEach(p => {
+      const total = totalStock(p);
+      const agotado = total === 0;
+      const art = document.createElement("article");
+      art.className = "producto" + (agotado ? " agotado" : "");
+      art.id = p.id;
+      art.dataset.disponible = agotado ? "no" : "si";
+      art.innerHTML = `
+        <div class="foto">
+          <img loading="lazy">
+          <button class="btn-enlace" title="Copiar enlace de este producto" aria-label="Copiar enlace">${icono.link}</button>
+        </div>
+        <div class="info">
+          <div class="cabecera-info"><h2></h2><span class="precio"></span></div>
+          <p class="desc"></p>
+          <fieldset class="tallas"><legend>Talla</legend></fieldset>
+          <p class="aviso-talla" aria-live="polite"></p>
+          <button class="btn-pedir"></button>
+        </div>`;
+
+      const img = art.querySelector("img");
+      img.src = p.imagen; img.alt = p.nombre;
+      img.onerror = () => { img.onerror = null; img.src = sinFoto; };
+      art.querySelector("h2").textContent = p.nombre;
+      art.querySelector(".precio").textContent = precioTxt(p.precio);
+      art.querySelector(".desc").textContent = p.descripcion || "";
+
+      // Etiqueta
+      let etiqueta = null;
+      if (agotado) etiqueta = ["Agotado", ""];
+      else if (total <= TIENDA.ultimasUnidades) etiqueta = ["Últimas unidades", "ultimas"];
+      else if (p.nuevo) etiqueta = ["Nuevo", ""];
+      if (etiqueta) {
+        const e = document.createElement("span");
+        e.className = "etiqueta " + etiqueta[1];
+        e.textContent = etiqueta[0];
+        art.querySelector(".foto").appendChild(e);
+      }
+
+      // Tallas
+      const caja = art.querySelector(".tallas");
+      const aviso = art.querySelector(".aviso-talla");
+      const boton = art.querySelector(".btn-pedir");
+      let tallaElegida = null;
+      Object.entries(p.stock || {}).forEach(([talla, uds]) => {
+        const b = document.createElement("button");
+        b.type = "button"; b.className = "talla"; b.textContent = talla;
+        b.disabled = uds <= 0;
+        b.setAttribute("aria-pressed", "false");
+        if (uds <= 0) b.title = "Agotada";
+        b.onclick = () => {
+          caja.querySelectorAll(".talla").forEach(x => x.setAttribute("aria-pressed", "false"));
+          b.setAttribute("aria-pressed", "true");
+          tallaElegida = talla;
+          aviso.textContent = uds <= TIENDA.ultimasUnidades ? `¡Solo ${uds === 1 ? "queda 1" : "quedan " + uds} en talla ${talla}!` : "";
+        };
+        caja.appendChild(b);
+      });
+
+      if (agotado) {
+        boton.classList.add("secundario");
+        boton.innerHTML = icono.ig + " Avísame cuando vuelva";
+        boton.onclick = () => abrirPedido(p, null, "reposicion");
+      } else {
+        boton.innerHTML = icono.ig + " Pedir por Instagram";
+        boton.onclick = () => {
+          if (!tallaElegida) { aviso.textContent = "Elige una talla primero 👆"; return; }
+          abrirPedido(p, tallaElegida, "pedido");
+        };
+      }
+
+      art.querySelector(".btn-enlace").onclick = async () => {
+        if (!urlProducto(p)) { aviso.textContent = "El enlace funcionará cuando publiques la web"; return; }
+        await copiar(urlProducto(p));
+        aviso.textContent = "Enlace copiado ✔";
+        setTimeout(() => { if (aviso.textContent === "Enlace copiado ✔") aviso.textContent = ""; }, 2500);
+      };
+
+      catalogo.appendChild(art);
+    });
+
+    // Filtros
+    const contador = document.getElementById("contador");
+    function filtrar(tipo) {
+      document.querySelectorAll(".chip").forEach(c => c.setAttribute("aria-pressed", c.dataset.filtro === tipo));
+      let visibles = 0;
+      document.querySelectorAll(".producto").forEach(a => {
+        const ver = tipo === "todos" || a.dataset.disponible === "si";
+        a.hidden = !ver; if (ver) visibles++;
+      });
+      contador.textContent = visibles + (visibles === 1 ? " camiseta" : " camisetas");
+    }
+    document.querySelectorAll(".chip").forEach(c => c.onclick = () => filtrar(c.dataset.filtro));
+    filtrar("todos");
+
+    // Portapapeles
+    async function copiar(texto) {
+      try { await navigator.clipboard.writeText(texto); return true; }
+      catch {
+        const t = document.createElement("textarea");
+        t.value = texto; t.style.position = "fixed"; t.style.opacity = "0";
+        document.body.appendChild(t); t.select();
+        let ok = false; try { ok = document.execCommand("copy"); } catch {}
+        t.remove(); return ok;
+      }
+    }
+
+    // Ventana de pedido: Instagram no permite rellenar el DM desde un enlace,
+    // así que copiamos el mensaje y guiamos al cliente para que lo pegue.
+    const modal = document.getElementById("modal");
+    let mensajeActual = "";
+    async function abrirPedido(p, talla, tipo) {
+      mensajeActual = rellenar(MENSAJES[tipo], {
+        nombre: p.nombre, ref: p.id, talla: talla || "", precio: precioTxt(p.precio), enlace: urlProducto(p),
+      }).trim();
+      document.getElementById("modal-titulo").textContent = tipo === "pedido" ? "Tu pedido está listo" : "Te avisamos";
+      document.getElementById("modal-mensaje").textContent = mensajeActual;
+      const abrir = document.getElementById("modal-abrir");
+      abrir.href = "https://ig.me/m/" + TIENDA.instagram;
+      abrir.innerHTML = icono.ig + " Abrir chat de Instagram";
+      modal.showModal();
+      marcarCopiado(await copiar(mensajeActual));
+    }
+    function marcarCopiado(ok) {
+      document.getElementById("modal-estado").innerHTML = ok
+        ? icono.ok + " Mensaje copiado. Solo tienes que pegarlo."
+        : "Copia este mensaje y pégalo en el chat:";
+    }
+    document.getElementById("modal-copiar").onclick = async () => marcarCopiado(await copiar(mensajeActual));
+    // Al abrir Instagram volvemos a copiar por si el cliente copió otra cosa entretanto
+    document.getElementById("modal-abrir").addEventListener("click", () => copiar(mensajeActual));
+    modal.addEventListener("click", e => { if (e.target === modal) modal.close(); });
+
+    // Enlace directo a un producto (#id): resaltarlo
+    function resaltar() {
+      document.querySelectorAll(".destacado").forEach(e => e.classList.remove("destacado"));
+      const el = document.getElementById(decodeURIComponent(location.hash.slice(1)));
+      if (el && el.classList.contains("producto")) {
+        filtrar("todos");
+        el.classList.add("destacado");
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }
+    window.addEventListener("hashchange", resaltar);
+    resaltar();
+  </script>
+</body>
+</html>
