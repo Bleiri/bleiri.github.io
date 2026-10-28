@@ -214,13 +214,13 @@
   <section class="como">
     <h3>Cómo pedir</h3>
     <div class="paso"><b>01</b><p>Elige tu camiseta y tu talla y pulsa <strong>Pedir por Instagram</strong>.</p></div>
-    <div class="paso"><b>02</b><p>Se abre nuestro chat con tu pedido ya copiado: <strong>pega y envía</strong>.</p></div>
+    <div class="paso"><b>02</b><p>Se abre nuestro chat de Instagram con tu pedido. Si no aparece, <strong>pega y envía</strong>: ya está copiado.</p></div>
     <div class="paso"><b>03</b><p>Te respondemos para confirmar el pago y el envío.</p></div>
   </section>
 
   <footer id="pie"></footer>
 
-  <div class="toast" id="toast" role="status">✔ Pedido copiado. En el chat de Instagram, <strong>pega y envía</strong>.</div>
+  <div class="toast" id="toast" role="status">✔ Abriendo Instagram. Si tu pedido no aparece en el chat, <strong>pégalo y envía</strong> (ya está copiado).</div>
 
   <dialog id="modal">
     <button class="cerrar" aria-label="Cerrar" onclick="modal.close()">×</button>
@@ -251,6 +251,7 @@
       instagram: "bleiri___", // sin la @
       moneda: "€",
       ultimasUnidades: 2, // con este número o menos se muestra "¡Quedan X!"
+      refManychat: "pedido", // ref de la automatización de ManyChat "Pedido desde la web Bleiri" ("" para desactivar)
     };
 
     // Plantillas del mensaje que te llegará por DM.
@@ -468,6 +469,16 @@
       nombre: p.nombre, ref: p.id, talla: talla || "", precio: precioTxt(p.precio), enlace: urlProducto(p),
     }).trim();
 
+    // Enlace al chat. Con ManyChat lleva el pedido dentro (?ref=pedido--Basica-Negra_talla-M)
+    // y ManyChat responde automáticamente en el chat con el producto y la talla.
+    function enlaceChat(p, talla, tipo) {
+      const base = "https://ig.me/m/" + TIENDA.instagram;
+      if (!TIENDA.refManychat) return base;
+      const limpio = s => s.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^A-Za-z0-9]+/g, "-").replace(/^-|-$/g, "");
+      const datos = limpio(p.nombre) + (tipo === "pedido" ? "_talla-" + limpio(talla) : "_avisame-reposicion");
+      return base + "?ref=" + TIENDA.refManychat + "--" + datos;
+    }
+
     // Un solo toque: copia el mensaje y abre el chat de Instagram.
     // Instagram no deja que una web escriba en su chat, así que el cliente solo tiene que pegar y enviar.
     function pedirDirecto(p, talla, tipo) {
@@ -478,7 +489,7 @@
         navigator.clipboard.writeText(mensaje).then(() => { copiado = true; }, () => {});
       }
       avisarPegar();
-      window.open("https://ig.me/m/" + TIENDA.instagram, "_blank");
+      window.open(enlaceChat(p, talla, tipo), "_blank");
       // Si al volver a la web resulta que no se pudo copiar, mostramos la ventana con el mensaje
       setTimeout(() => { if (!copiado) abrirPedido(p, talla, tipo); }, 1500);
     }
@@ -499,7 +510,7 @@
       document.getElementById("modal-titulo").textContent = tipo === "pedido" ? "Tu pedido está listo" : "Te avisamos";
       document.getElementById("modal-mensaje").textContent = mensajeActual;
       const abrir = document.getElementById("modal-abrir");
-      abrir.href = "https://ig.me/m/" + TIENDA.instagram;
+      abrir.href = enlaceChat(p, talla, tipo);
       abrir.innerHTML = icono.ig + " Abrir chat de Instagram";
       modal.showModal();
       marcarCopiado(await copiar(mensajeActual));
